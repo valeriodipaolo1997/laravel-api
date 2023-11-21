@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Project;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
+
 use App\Http\Controllers\Controller;
 use App\Models\Technology;
 use App\Models\Type;
@@ -19,8 +20,10 @@ class ProjectController extends Controller
     public function index()
     {
         $projects = Project::orderByDesc('id')->paginate(10);
+
         return view('admin.projects.index', compact('projects'));
     }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -30,6 +33,7 @@ class ProjectController extends Controller
         $technologies = Technology::all();
         return view('admin.projects.create', compact('types', 'technologies'));
     }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -38,6 +42,7 @@ class ProjectController extends Controller
         $val_data = $request->validated();
 
         $val_data['slug'] = Project::generateSlug($request->title);
+
         //dd($val_data);
 
         if ($request->has('thumb')) {
@@ -49,12 +54,12 @@ class ProjectController extends Controller
         $project->technologies()->attach($request->technologies);
         return to_route('admin.projects.index')->with('message', 'Project created successfully');
     }
+
     /**
      * Display the specified resource.
      */
     public function show(Project $project)
     {
-
         if ($project) {
             return view('admin.projects.show', compact('project'));
         }
@@ -70,6 +75,7 @@ class ProjectController extends Controller
 
         return view('admin.projects.edit', compact('project', 'types', 'technologies'));
     }
+
     /**
      * Update the specified resource in storage.
      */
@@ -86,14 +92,14 @@ class ProjectController extends Controller
             Storage::delete($relative_path);
 
             $newImageFile = $request->thumb;
+
             $file_path = Storage::put('projects_images', $newImageFile);
             $val_data['thumb'] = $file_path;
         }
 
-         if (!Str::is($project->getOriginal('title'), $request->title)) {
+        if (!Str::is($project->getOriginal('title'), $request->title)) {
             $val_data['slug'] = $project->generateSlug($request->title);
         }
-
 
         $project->update($val_data);
 
@@ -103,16 +109,19 @@ class ProjectController extends Controller
 
         return to_route('admin.projects.index')->with('message', 'Welldone! project updated successfully');
     }
+
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Project $project)
     {
+
         //dd($project->exif_thumbnail);
         //dd($project->thumb);
         /*  if (!is_null($project->thumb)) {
             Storage::delete($project->thumb);
         } */
+
         $project->delete();
 
         return to_route('admin.projects.index')->with('message', 'Welldone! Project deleted successfully');
@@ -120,7 +129,7 @@ class ProjectController extends Controller
 
     public function trash_projects()
     {
-        return view('admin.projects.trash', ['trash_project' => Project::onlyTrashed()->get()]);
+        return view('admin.projects.trash', ['trash_project' => Project::onlyTrashed()->orderByDesc('deleted_at')->paginate(10)]);
     }
 
 
@@ -150,7 +159,6 @@ class ProjectController extends Controller
         if ($project->technologies) {
             $project->technologies()->detach();
         }
-
 
         $project->forceDelete();
 

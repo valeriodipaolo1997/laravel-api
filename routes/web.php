@@ -1,7 +1,9 @@
 <?php
 
-use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ProjectController;
+use App\Http\Controllers\Admin\TechnologyController;
+use App\Http\Controllers\Admin\TypeController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,10 +29,20 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         'projects' => 'project:slug'
     ]);
 
+    Route::resource('types', TypeController::class)->parameters([
+        'types' => 'type:slug'
+    ]);
+
+    Route::resource('technologies', TechnologyController::class)->parameters([
+        'technologies' => 'technology:slug'
+    ]);
+
     Route::get('/admin/project/trash', [ProjectController::class, 'trash_projects'])->name('trash');
     Route::put('/admin/trash/{project}/restore', [ProjectController::class, 'restore'])->name('restore');
     Route::delete('/admin/trash/{project}/destroy', [ProjectController::class, 'forceDelete'])->name('forceDelete');
 });
+
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
